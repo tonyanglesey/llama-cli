@@ -20,6 +20,7 @@ import { registerLogin } from "./commands/login.js";
 import { registerLogout } from "./commands/logout.js";
 import { registerWhoami } from "./commands/whoami.js";
 import { registerLink } from "./commands/link.js";
+import { registerUnlink } from "./commands/unlink.js";
 
 // We're an ES module, so there's no `require` by default. createRequire gives us
 // one just so we can pull the version string out of our own package.json.
@@ -46,6 +47,7 @@ registerLogin(program);
 registerLogout(program);
 registerWhoami(program);
 registerLink(program);
+registerUnlink(program);
 
 // parseAsync (not parse) because our command handlers do async work (network,
 // reading files). It reads process.argv, matches a subcommand, and runs it.
