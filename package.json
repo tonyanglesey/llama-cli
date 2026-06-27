@@ -1,0 +1,32 @@
+{
+  "name": "@lla-ma/cli",
+  "version": "0.1.0",
+  "description": "The lla.ma command-line tool — deploy, logs, env, db, all from the terminal.",
+  "license": "Apache-2.0",
+  "author": "Tony Anglesey",
+  "type": "module",
+  "bin": {
+    "lla-ma": "dist/cli.js",
+    "llma": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "start": "node dist/cli.js",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0"
+  }
+}
