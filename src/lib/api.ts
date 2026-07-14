@@ -95,3 +95,7 @@ export function apiPost(
 ): Promise<ApiResult> {
   return request(baseUrl, path, { method: "POST", body: JSON.stringify(body ?? {}) }, session);
 }
+
+export function apiDelete(baseUrl: string, path: string, session?: string): Promise<ApiResult> {
+  return request(baseUrl, path, { method: "DELETE" }, session);
+}
