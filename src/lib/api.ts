@@ -99,3 +99,58 @@ export function apiPost(
 export function apiDelete(baseUrl: string, path: string, session?: string): Promise<ApiResult> {
   return request(baseUrl, path, { method: "DELETE" }, session);
 }
+
+/** Result of opening a streaming (SSE) GET. */
+export interface StreamResult {
+  /** true when the HTTP status was 2xx and a body is present. */
+  ok: boolean;
+  /** HTTP status, or 0 if the host was unreachable. */
+  status: number;
+  /** The live response body to read; present only when ok. */
+  body?: ReadableStream<Uint8Array>;
+  /** Parsed error body (or raw text); present only when !ok. */
+  data?: any;
+}
+
+/**
+ * Open a GET for streaming (Server-Sent Events) rather than buffering the whole
+ * body. Returns the raw ReadableStream so the caller can consume it as it
+ * arrives (see commands/logs.ts). Like the other helpers, it never throws on a
+ * network error — it returns { ok:false, status:0 }.
+ */
+export async function apiStream(
+  baseUrl: string,
+  path: string,
+  session?: string,
+  signal?: AbortSignal,
+): Promise<StreamResult> {
+  const headers: Record<string, string> = { accept: "text/event-stream" };
+  if (session) headers["cookie"] = `${COOKIE_NAME}=${session}`;
+
+  let res: Response;
+  try {
+    res = await fetch(joinUrl(baseUrl, path), { method: "GET", headers, signal });
+  } catch (err) {
+    return {
+      ok: false,
+      status: 0,
+      data: { error: `Could not reach ${baseUrl} (${(err as Error).message})` },
+    };
+  }
+
+  if (!res.ok || !res.body) {
+    // Read the (small, JSON) error body so callers can surface a message.
+    let data: any = null;
+    const text = await res.text().catch(() => "");
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = text;
+      }
+    }
+    return { ok: false, status: res.status, data };
+  }
+
+  return { ok: true, status: res.status, body: res.body };
+}
