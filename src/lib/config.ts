@@ -40,6 +40,8 @@ export interface Hosts {
   apps: string;
   /** database console (base). */
   base: string;
+  /** admin console (the kanban board lives here). */
+  admin: string;
 }
 
 /** Per-directory link, written to .lla-ma/project.json. */
@@ -47,6 +49,7 @@ export interface LinkConfig {
   api?: string;
   apps?: string;
   base?: string;
+  admin?: string;
   /** optional project slug/id this directory is bound to. */
   project?: string;
 }
@@ -150,12 +153,12 @@ export function deriveHosts(api: string): Hosts {
       const rootDomain = parts.slice(1).join(".");
       const port = u.port ? `:${u.port}` : "";
       const sub = (label: string) => `${u.protocol}//${label}.${rootDomain}${port}`;
-      return { api, apps: sub("apps"), base: sub("base") };
+      return { api, apps: sub("apps"), base: sub("base"), admin: sub("admin") };
     }
   } catch {
     /* fall through to single-origin */
   }
-  return { api, apps: api, base: api };
+  return { api, apps: api, base: api, admin: api };
 }
 
 /**
@@ -171,6 +174,7 @@ export function resolveHosts(opts: { endpoint?: string } = {}): Hosts {
     api,
     apps: link?.apps ?? derived.apps,
     base: link?.base ?? derived.base,
+    admin: link?.admin ?? derived.admin,
   };
 }
 
