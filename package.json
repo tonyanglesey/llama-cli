@@ -19,6 +19,7 @@
     "build": "tsc",
     "dev": "tsx src/cli.ts",
     "start": "node dist/cli.js",
+    "release": "npm run build && T=$(npm pack --silent) && npm install -g \"./$T\" && rm -f \"$T\"",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {

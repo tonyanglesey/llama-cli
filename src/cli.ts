@@ -26,6 +26,7 @@ import { registerLogs } from "./commands/logs.js";
 import { registerInspect } from "./commands/inspect.js";
 import { registerRemove } from "./commands/remove.js";
 import { registerEnv } from "./commands/env.js";
+import { registerDeploy } from "./commands/deploy.js";
 
 // We're an ES module, so there's no `require` by default. createRequire gives us
 // one just so we can pull the version string out of our own package.json.
@@ -58,6 +59,7 @@ registerLogs(program);
 registerInspect(program);
 registerRemove(program);
 registerEnv(program);
+registerDeploy(program);
 
 // parseAsync (not parse) because our command handlers do async work (network,
 // reading files). It reads process.argv, matches a subcommand, and runs it.
