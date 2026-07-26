@@ -40,6 +40,17 @@ lla-ma env rm <key>               remove an environment variable
 lla-ma env pull [file]            write env vars to a local file (default .env.local)
 ```
 
+### Board (kanban → git)
+
+```
+lla-ma branch <key>               cut/adopt a ticket's branch and switch to it (e.g. CLI-5)
+```
+
+Reads the kanban board on `admin.lla.ma` using your `lla-ma login` session and
+runs local git — no GitHub token in the CLI. If the ticket already has a branch
+(cut from the board's button) it adopts it; otherwise it asks the board to cut
+one, then `git fetch` + `git switch` onto it. Run it inside the ticket's repo.
+
 ### Global
 
 ```
