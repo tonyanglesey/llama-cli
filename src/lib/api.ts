@@ -3,14 +3,18 @@
 // A thin wrapper over the built-in `fetch` (Node 20 has it globally). It:
 //   • joins the base URL + path
 //   • sends/receives JSON
-//   • attaches the session as a `Cookie: lla_session=<id>` header
+//   • attaches the session as a `Cookie: __Host-lla_session=<id>` header
 //     (api.lla.ma's requireSession reads the cookie — there is no Bearer path
 //      for management yet; see LLAMA_CLI_SPEC.md)
-//   • pulls a newly-issued lla_session out of the response Set-Cookie
+//   • pulls a newly-issued session id out of the response Set-Cookie
 //   • never throws on a network error — it returns { ok:false, status:0 } so
 //     callers handle everything with one shape.
 
-const COOKIE_NAME = "lla_session";
+// api.lla.ma issues `__Host-lla_session`; we forward it under the same name.
+// The CLI stores the id in a config file (not a browser cookie), so the
+// `__Host-` prefix carries no browser semantics here — it's just the agreed
+// name. The legacy `lla_session` is still accepted when reading (below).
+const COOKIE_NAME = "__Host-lla_session";
 
 export interface ApiResult {
   /** true when the HTTP status was 2xx. */
@@ -27,7 +31,8 @@ function joinUrl(baseUrl: string, path: string): string {
   return baseUrl.replace(/\/+$/, "") + path;
 }
 
-/** Pull `lla_session=<id>` out of one or more Set-Cookie headers. */
+/** Pull the session id out of one or more Set-Cookie headers, accepting both
+ * the `__Host-lla_session` name and the pre-migration `lla_session`. */
 function extractSession(headers: Headers): string | undefined {
   let cookies: string[] = [];
   // Node 20's fetch exposes getSetCookie() which correctly splits multiple
@@ -40,7 +45,9 @@ function extractSession(headers: Headers): string | undefined {
     if (raw) cookies = [raw];
   }
   for (const c of cookies) {
-    const m = c.match(/lla_session=([^;]+)/);
+    const m =
+      c.match(/__Host-lla_session=([^;]+)/) ??
+      c.match(/(?:^|[;\s])lla_session=([^;]+)/);
     if (m?.[1]) return m[1];
   }
   return undefined;
