@@ -14,6 +14,7 @@ import { stdin, stdout } from "node:process";
 
 import { resolveApi, writeCredentials } from "../lib/config.js";
 import { apiPost } from "../lib/api.js";
+import { solvePow } from "../lib/pow.js";
 import { ok, fail, info } from "../lib/output.js";
 
 export function registerLogin(program: Command): void {
@@ -35,7 +36,22 @@ export function registerLogin(program: Command): void {
         }
 
         // Step 1 — ask the server to email a 6-digit code.
-        const send = await apiPost(api, "/api/auth/otp/send", { email });
+        let send = await apiPost(api, "/api/auth/otp/send", { email });
+        // Proof-of-work gate: when the server's anti-spam PoW is enabled it
+        // answers a bare send with 428 { powChallenge, bits }. Solve it
+        // (~sub-second) and retry once. Harmless when PoW is off — never 428s.
+        if (
+          send.status === 428 &&
+          typeof send.data?.powChallenge === "string" &&
+          typeof send.data?.bits === "number"
+        ) {
+          const powNonce = solvePow(send.data.powChallenge, send.data.bits);
+          send = await apiPost(api, "/api/auth/otp/send", {
+            email,
+            powChallenge: send.data.powChallenge,
+            powNonce,
+          });
+        }
         if (!send.ok) {
           fail(send.data?.error ?? `Could not send a code (HTTP ${send.status}).`);
           process.exitCode = 1;
